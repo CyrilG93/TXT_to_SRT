@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Build artifacts
+build/TXT_to_SRT
+build/*.app/Contents/MacOS/TXT_to_SRT*
+
+# Xcode
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+
+# Swift
+*.swiftmodule
+*.swiftdoc
+
+# Test files
+test_*.swift
+test_*.txt
+*_OK.txt
+
+# Temporary files
+*.tmp
+*.bak
