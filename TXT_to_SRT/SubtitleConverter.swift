@@ -40,76 +40,115 @@ class SubtitleConverter {
     }
     
     /// Parse subtitle content (supports both TXT and SRT formats)
+    /// Uses line-by-line parsing with timecode detection to avoid losing
+    /// multi-line subtitles that contain blank lines between text lines.
     private func parseSubtitles(from content: String) throws -> [Subtitle] {
         var subtitles: [Subtitle] = []
         
-        // Normalize line endings (handle both \r\n and \n)
-        let normalizedContent = content.replacingOccurrences(of: "\r\n", with: "\n")
+        // Normalize line endings (handle \r\n, standalone \r, and \n)
+        let normalizedContent = content
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
         
-        // Split by double newlines to get blocks
-        let blocks = normalizedContent.components(separatedBy: "\n\n")
+        let allLines = normalizedContent.components(separatedBy: "\n")
         
-        for block in blocks {
-            let lines = block.components(separatedBy: "\n").filter { !$0.isEmpty }
-            
-            guard lines.count >= 2 else { continue }
-            
-            // Try to find timecode line (skip subtitle numbers)
-            var timecodeLine: String?
-            var textStartIndex = 1
-            
-            // Check if first line is a number (SRT format)
-            if let _ = Int(lines[0].trimmingCharacters(in: .whitespaces)) {
-                // Skip the number, timecode is on second line
-                if lines.count >= 3 {
-                    timecodeLine = lines[1]
-                    textStartIndex = 2
-                }
-            } else {
-                // First line should be timecode
-                timecodeLine = lines[0]
-                textStartIndex = 1
-            }
-            
-            guard let timecode = timecodeLine else { continue }
-            
-            // Try TXT format: HH:MM:SS:FF - HH:MM:SS:FF
-            let txtPattern = #"(\d{2}:\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2}:\d{2})"#
-            
-            // Try SRT format: HH:MM:SS,mmm --> HH:MM:SS,mmm
-            let srtPattern = #"(\d{2}:\d{2}:\d{2}[,\.]\d{3})\s*--?>\s*(\d{2}:\d{2}:\d{2}[,\.]\d{3})"#
-            
-            var startTime: String?
-            var endTime: String?
+        // Regex patterns for timecode detection
+        let txtPattern = #"(\d{2}:\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2}:\d{2})"#
+        let srtPattern = #"(\d{2}:\d{2}:\d{2}[,\.]\d{3})\s*--?>\s*(\d{2}:\d{2}:\d{2}[,\.]\d{3})"#
+        
+        let txtRegex = try? NSRegularExpression(pattern: txtPattern)
+        let srtRegex = try? NSRegularExpression(pattern: srtPattern)
+        
+        /// Try to extract start/end times from a line
+        func srtConvertExtractTimecodes(from line: String) -> (start: String, end: String)? {
+            let range = NSRange(line.startIndex..., in: line)
             
             // Try TXT format first
-            if let regex = try? NSRegularExpression(pattern: txtPattern),
-               let match = regex.firstMatch(in: timecode, range: NSRange(timecode.startIndex..., in: timecode)),
-               let startRange = Range(match.range(at: 1), in: timecode),
-               let endRange = Range(match.range(at: 2), in: timecode) {
-                startTime = String(timecode[startRange])
-                endTime = String(timecode[endRange])
-            }
-            // Try SRT format
-            else if let regex = try? NSRegularExpression(pattern: srtPattern),
-                    let match = regex.firstMatch(in: timecode, range: NSRange(timecode.startIndex..., in: timecode)),
-                    let startRange = Range(match.range(at: 1), in: timecode),
-                    let endRange = Range(match.range(at: 2), in: timecode) {
-                // Already in SRT format, just normalize (replace . with ,)
-                startTime = String(timecode[startRange]).replacingOccurrences(of: ".", with: ",")
-                endTime = String(timecode[endRange]).replacingOccurrences(of: ".", with: ",")
+            if let regex = txtRegex,
+               let match = regex.firstMatch(in: line, range: range),
+               let startRange = Range(match.range(at: 1), in: line),
+               let endRange = Range(match.range(at: 2), in: line) {
+                return (String(line[startRange]), String(line[endRange]))
             }
             
-            guard let start = startTime, let end = endTime else {
+            // Try SRT format
+            if let regex = srtRegex,
+               let match = regex.firstMatch(in: line, range: range),
+               let startRange = Range(match.range(at: 1), in: line),
+               let endRange = Range(match.range(at: 2), in: line) {
+                let start = String(line[startRange]).replacingOccurrences(of: ".", with: ",")
+                let end = String(line[endRange]).replacingOccurrences(of: ".", with: ",")
+                return (start, end)
+            }
+            
+            return nil
+        }
+        
+        // State for current subtitle being built
+        var currentStart: String?
+        var currentEnd: String?
+        var currentTextLines: [String] = []
+        
+        /// Flush the current subtitle into the results array
+        func srtConvertFlushCurrent() {
+            guard let start = currentStart, let end = currentEnd else { return }
+            
+            // Trim leading/trailing empty lines from text, preserve internal ones
+            var trimmedLines = currentTextLines
+            while trimmedLines.first?.trimmingCharacters(in: .whitespaces).isEmpty == true {
+                trimmedLines.removeFirst()
+            }
+            while trimmedLines.last?.trimmingCharacters(in: .whitespaces).isEmpty == true {
+                trimmedLines.removeLast()
+            }
+            
+            guard !trimmedLines.isEmpty else { return }
+            
+            let text = trimmedLines.joined(separator: "\n")
+            subtitles.append(Subtitle(startTime: start, endTime: end, text: text))
+            
+            currentStart = nil
+            currentEnd = nil
+            currentTextLines = []
+        }
+        
+        var i = 0
+        while i < allLines.count {
+            let line = allLines[i]
+            let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+            
+            // Check if this line is a timecode
+            if let timecodes = srtConvertExtractTimecodes(from: line) {
+                // Flush previous subtitle
+                srtConvertFlushCurrent()
+                currentStart = timecodes.start
+                currentEnd = timecodes.end
+                i += 1
                 continue
             }
             
-            // Rest of lines are subtitle text
-            guard textStartIndex < lines.count else { continue }
-            let text = lines[textStartIndex...].joined(separator: "\n")
+            // Check if this line is a subtitle number followed by a timecode on the next line
+            if Int(trimmedLine) != nil, i + 1 < allLines.count {
+                if let timecodes = srtConvertExtractTimecodes(from: allLines[i + 1]) {
+                    // Flush previous subtitle
+                    srtConvertFlushCurrent()
+                    currentStart = timecodes.start
+                    currentEnd = timecodes.end
+                    i += 2  // Skip both the number and the timecode line
+                    continue
+                }
+            }
             
-            subtitles.append(Subtitle(startTime: start, endTime: end, text: text))
+            // This is a text line (or empty line between text lines)
+            if currentStart != nil {
+                currentTextLines.append(line)
+            }
+            
+            i += 1
         }
+        
+        // Flush the last subtitle
+        srtConvertFlushCurrent()
         
         return subtitles
     }
