@@ -1,70 +1,70 @@
 # SRT Converter
 
-Application macOS native pour convertir des fichiers de sous-titres `.txt` en `.srt`.
+Native macOS app for converting subtitle `.txt` files to `.srt`.
 
-## Fonctionnalités
+## Features
 
-- Conversion d'un ou plusieurs fichiers `.txt` en une seule fois
-- Glisser-déposer ou sélection via le bouton de l'application
-- Interface en français et en anglais
-- Lecture des fichiers TXT en UTF-8, UTF-16, Windows-1252 et ISO Latin 1
-- Création des fichiers `.srt` dans le même dossier que les fichiers d'origine
-- Application autonome, sans dépendance à installer pour l'utilisateur
-- Compatible avec macOS 11 ou plus récent
+- Convert one or several `.txt` files at once
+- Drag and drop files, or select them from the app
+- French and English interface
+- Reads TXT files encoded as UTF-8, UTF-16, Windows-1252, or ISO Latin 1
+- Creates `.srt` files in the same folder as the original files
+- Standalone app with no extra user dependency
+- Compatible with macOS 11 or newer
 
 ## Installation
 
-1. Téléchargez la dernière archive `.zip` depuis la page GitHub Releases.
-2. Décompressez l'archive.
-3. Glissez `SRT Converter.app` dans le dossier `Applications`.
-4. Au premier lancement, si macOS bloque l'app, faites clic droit sur `SRT Converter`, puis `Ouvrir`.
+1. Download the latest `.zip` archive from GitHub Releases.
+2. Unzip the archive.
+3. Drag `SRT Converter.app` into the `Applications` folder.
+4. On first launch, if macOS blocks the app, right-click `SRT Converter`, then choose `Open`.
 
-Vous pouvez aussi utiliser l'application directement depuis le dossier extrait.
+You can also run the app directly from the extracted folder.
 
-## Utilisation
+## Usage
 
-1. Ouvrez `SRT Converter`.
-2. Glissez un ou plusieurs fichiers `.txt` dans la zone centrale, ou cliquez pour les sélectionner.
-3. Cliquez sur `Convert to SRT` / `Convertir en SRT`.
-4. Les fichiers `.srt` sont créés à côté des fichiers `.txt` d'origine.
+1. Open `SRT Converter`.
+2. Drag one or several `.txt` files into the center drop zone, or click it to select files.
+3. Click `Convert to SRT` / `Convertir en SRT`.
+4. The `.srt` files are created next to the original `.txt` files.
 
-## Format accepté
+## Supported Format
 
-Entrée `.txt`:
+Input `.txt`:
 
 ```txt
 00:00:01:14 - 00:00:03:13
-Texte du sous-titre
+Subtitle text
 ```
 
-Sortie `.srt`:
+Output `.srt`:
 
 ```srt
 1
 00:00:01,560 --> 00:00:03,520
-Texte du sous-titre
+Subtitle text
 ```
 
-L'application accepte aussi les timecodes SRT déjà écrits avec `-->`.
+The app also accepts existing SRT-style timecodes written with `-->`.
 
-## Compilation
+## Build
 
-Pour recréer l'application depuis les sources:
+To recreate the app from source:
 
 ```bash
 ./build.sh
 ```
 
-L'application générée se trouve dans `build/SRT Converter.app`.
+The generated app is available at `build/SRT Converter.app`.
 
 ## Version
 
-Version actuelle: `1.1.0`
+Current version: `1.1.0`
 
 ## Changelog
 
 ### 1.1.0 - 2026-05-01
 
-- Nouvelle icône macOS intégrée correctement dans l'application.
-- Release macOS fournie avec l'application finale et le README.
-- Lecture plus robuste des fichiers TXT exportés avec différents encodages.
+- Added the new macOS icon correctly inside the app.
+- Provided the macOS release with the final app and README.
+- Improved TXT reading for files exported with different encodings.
