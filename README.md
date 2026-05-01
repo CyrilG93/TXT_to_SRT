@@ -1,102 +1,70 @@
-# SRT Converter - Native macOS Application
+# SRT Converter
 
-## ✅ Project Status: COMPLETE & FUNCTIONAL
+Application macOS native pour convertir des fichiers de sous-titres `.txt` en `.srt`.
 
-A fully native macOS Swift application for converting subtitle files from TXT format to SRT format.
+## Fonctionnalités
 
-## 📁 Project Structure
+- Conversion d'un ou plusieurs fichiers `.txt` en une seule fois
+- Glisser-déposer ou sélection via le bouton de l'application
+- Interface en français et en anglais
+- Lecture des fichiers TXT en UTF-8, UTF-16, Windows-1252 et ISO Latin 1
+- Création des fichiers `.srt` dans le même dossier que les fichiers d'origine
+- Application autonome, sans dépendance à installer pour l'utilisateur
+- Compatible avec macOS 11 ou plus récent
 
+## Installation
+
+1. Téléchargez la dernière archive `.zip` depuis la page GitHub Releases.
+2. Décompressez l'archive.
+3. Lancez `txttosrt_install_macos.sh` pour copier l'application dans `/Applications`.
+4. Au premier lancement, si macOS bloque l'app, faites clic droit sur `SRT Converter`, puis `Ouvrir`.
+
+Vous pouvez aussi utiliser l'application directement depuis le dossier extrait.
+
+## Utilisation
+
+1. Ouvrez `SRT Converter`.
+2. Glissez un ou plusieurs fichiers `.txt` dans la zone centrale, ou cliquez pour les sélectionner.
+3. Cliquez sur `Convert to SRT` / `Convertir en SRT`.
+4. Les fichiers `.srt` sont créés à côté des fichiers `.txt` d'origine.
+
+## Format accepté
+
+Entrée `.txt`:
+
+```txt
+00:00:01:14 - 00:00:03:13
+Texte du sous-titre
 ```
-TXT_to_SRT_Native/
-├── TXT_to_SRT/              # Source code
-│   ├── main.swift           # App entry point
-│   ├── AppDelegate.swift    # Application lifecycle
-│   ├── ViewController.swift # Main UI and logic
-│   ├── DropZoneView.swift   # Drag-and-drop functionality
-│   ├── SubtitleConverter.swift # Conversion engine
-│   └── Localizable.swift    # Multi-language support (EN/FR)
-├── build/                   # Compiled application
-│   └── SRT Converter.app    # Ready-to-use app
-└── build.sh                 # Build script
+
+Sortie `.srt`:
+
+```srt
+1
+00:00:01,560 --> 00:00:03,520
+Texte du sous-titre
 ```
 
-## ✨ Features
+L'application accepte aussi les timecodes SRT déjà écrits avec `-->`.
 
-- **Multi-file batch conversion** - Process multiple files at once
-- **Smart format detection** - Handles both TXT and SRT formats
-- **Windows/Unix line endings** - Automatically normalizes `\r\n` and `\n`
-- **Multi-language UI** - English (default) and French
-- **Modern dark UI** - Glassmorphism design with vibrant colors
-- **Drag-and-drop** - Easy file selection
-- **Standalone** - No dependencies, ~2 MB
+## Compilation
 
-## 🚀 Usage
-
-1. **Run the app**: Double-click `build/SRT Converter.app`
-2. **Select files**: Drag TXT files or click to browse
-3. **Convert**: Click the green "Convert to SRT" button
-4. **Done**: SRT files are created in the same folder as originals
-
-## 🔧 Building
+Pour recréer l'application depuis les sources:
 
 ```bash
 ./build.sh
 ```
 
-The compiled app will be in `build/SRT Converter.app`
+L'application générée se trouve dans `build/SRT Converter.app`.
 
-## 📝 Supported Formats
+## Version
 
-**Input (TXT):**
-```
-00:00:01:14 - 00:00:03:13
-Subtitle text here
-```
+Version actuelle: `1.1.0`
 
-**Output (SRT):**
-```
-1
-00:00:01,560 --> 00:00:03,520
-Subtitle text here
-```
+## Changelog
 
-Also handles mixed formats and files with existing SRT timecodes.
+### 1.1.0 - 2026-05-01
 
-## 🌍 Languages
-
-- **English** (default)
-- **Français**
-
-Toggle with the EN/FR button in the bottom right.
-
-## 📦 Distribution
-
-To share the app:
-1. Compress `SRT Converter.app` to ZIP
-2. Send to users
-3. Users: Decompress and drag to Applications folder
-4. First launch: Right-click → Open (security bypass)
-
-## ⚙️ Technical Details
-
-- **Language**: Swift
-- **Framework**: Cocoa (native macOS)
-- **Min OS**: macOS 10.13+
-- **Size**: ~2 MB
-- **Dependencies**: None
-
-## 🐛 Bug Fixes
-
-- ✅ Windows line endings (`\r\n`) support
-- ✅ Mixed format files (TXT + SRT)
-- ✅ Proper subtitle numbering
-- ✅ Multi-file drag-and-drop
-
-## 📄 License
-
-© 2025 - For internal use
-
----
-
-**Version**: 4.0.0  
-**Last Updated**: December 2025
+- Nouvelle icône macOS intégrée correctement dans l'application.
+- Release macOS fournie avec l'application, le README et le script d'installation.
+- Lecture plus robuste des fichiers TXT exportés avec différents encodages.

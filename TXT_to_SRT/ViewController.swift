@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import UniformTypeIdentifiers
 
 class ViewController: NSViewController {
     
@@ -284,7 +285,8 @@ extension ViewController: DropZoneViewDelegate {
         openPanel.allowsMultipleSelection = true
         openPanel.canChooseDirectories = false
         openPanel.canChooseFiles = true
-        openPanel.allowedFileTypes = ["txt"]
+        // Limit selection to TXT files with the modern Uniform Type Identifier API.
+        openPanel.allowedContentTypes = [UTType(filenameExtension: "txt") ?? .plainText]
         
         openPanel.begin { [weak self] response in
             if response == .OK, !openPanel.urls.isEmpty {

@@ -11,15 +11,6 @@
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>MacOS/TXT_to_SRT 08-24-39-039</key>
-		<dict>
-			<key>cdhash</key>
-			<data>
-			ss/40dw6tpayYEza2vw43nC8rdk=
-			</data>
-			<key>requirement</key>
-			<string>cdhash H"b2cff8d1dc3ab696b2604cdadafc38de70bcadd9"</string>
-		</dict>
 		<key>Resources/AppIcon.icns</key>
 		<dict>
 			<key>hash2</key>

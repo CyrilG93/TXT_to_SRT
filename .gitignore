@@ -7,6 +7,8 @@
 # Build artifacts
 build/TXT_to_SRT
 build/*.app/Contents/MacOS/TXT_to_SRT*
+build/.previous-*/
+Releases/
 
 # Xcode
 *.xcodeproj

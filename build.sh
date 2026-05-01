@@ -9,6 +9,17 @@ echo "============================================================"
 
 cd "$(dirname "$0")"
 
+APP_VERSION="1.1.0"
+APP_NAME="SRT Converter.app"
+APP_EXECUTABLE="TXT_to_SRT"
+APP_PATH="build/$APP_NAME"
+APP_ICON_SOURCE="TXT_to_SRT/AppIcon.icns"
+MACOSX_DEPLOYMENT_TARGET="11.0"
+SWIFT_TARGET="$(uname -m)-apple-macosx$MACOSX_DEPLOYMENT_TARGET"
+
+# Publier la cible de déploiement pour Swift et les outils Apple appelés par le script
+export MACOSX_DEPLOYMENT_TARGET
+
 # Vérifier que swiftc est disponible
 if ! command -v swiftc &> /dev/null; then
     echo "❌ Erreur: Swift compiler non trouvé"
@@ -26,7 +37,8 @@ echo "📦 Compilation des fichiers Swift..."
 
 # Compiler l'application
 swiftc \
-    -o build/TXT_to_SRT \
+    -o "build/$APP_EXECUTABLE" \
+    -target "$SWIFT_TARGET" \
     -framework Cocoa \
     -sdk $(xcrun --show-sdk-path --sdk macosx) \
     TXT_to_SRT/main.swift \
@@ -46,17 +58,27 @@ echo "✓ Compilation réussie"
 # Créer la structure .app
 echo "📁 Création du bundle .app..."
 
-APP_NAME="SRT Converter.app"
-APP_PATH="build/$APP_NAME"
+# Archiver l'ancien bundle local pour éviter de garder des fichiers obsolètes dans l'app recréée
+if [ -d "$APP_PATH" ]; then
+    PREVIOUS_APP_PATH="build/.previous-$(date +%Y%m%d%H%M%S)-$APP_NAME"
+    mv "$APP_PATH" "$PREVIOUS_APP_PATH"
+fi
 
 mkdir -p "$APP_PATH/Contents/MacOS"
 mkdir -p "$APP_PATH/Contents/Resources"
 
 # Copier l'exécutable
-cp build/TXT_to_SRT "$APP_PATH/Contents/MacOS/"
+cp "build/$APP_EXECUTABLE" "$APP_PATH/Contents/MacOS/"
+
+# Copier l'icône officielle du projet dans les ressources du bundle
+if [ ! -f "$APP_ICON_SOURCE" ]; then
+    echo "❌ Erreur: icône manquante: $APP_ICON_SOURCE"
+    exit 1
+fi
+cp "$APP_ICON_SOURCE" "$APP_PATH/Contents/Resources/AppIcon.icns"
 
 # Créer Info.plist
-cat > "$APP_PATH/Contents/Info.plist" << 'EOF'
+cat > "$APP_PATH/Contents/Info.plist" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -70,15 +92,17 @@ cat > "$APP_PATH/Contents/Info.plist" << 'EOF'
     <key>CFBundleDisplayName</key>
     <string>SRT Converter</string>
     <key>CFBundleVersion</key>
-    <string>4.0.0</string>
+    <string>$APP_VERSION</string>
     <key>CFBundleShortVersionString</key>
-    <string>4.0.0</string>
+    <string>$APP_VERSION</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>LSMinimumSystemVersion</key>
-    <string>10.13</string>
+    <string>$MACOSX_DEPLOYMENT_TARGET</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
@@ -87,36 +111,10 @@ cat > "$APP_PATH/Contents/Info.plist" << 'EOF'
 </plist>
 EOF
 
-# Convertir l'icône si elle existe
-if [ -f "../TXT_to_SRT_Converter/app_icon.png" ]; then
-    echo "🎨 Conversion de l'icône..."
-    
-    mkdir -p app_icon.iconset
-    
-    # Générer toutes les tailles
-    sips -z 16 16     ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_16x16.png
-    sips -z 32 32     ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_16x16@2x.png
-    sips -z 32 32     ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_32x32.png
-    sips -z 64 64     ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_32x32@2x.png
-    sips -z 128 128   ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_128x128.png
-    sips -z 256 256   ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_128x128@2x.png
-    sips -z 256 256   ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_256x256.png
-    sips -z 512 512   ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_256x256@2x.png
-    sips -z 512 512   ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_512x512.png
-    sips -z 1024 1024 ../TXT_to_SRT_Converter/app_icon.png --out app_icon.iconset/icon_512x512@2x.png
-    
-    # Convertir en ICNS
-    iconutil -c icns app_icon.iconset -o "$APP_PATH/Contents/Resources/AppIcon.icns"
-    
-    # Ajouter l'icône au Info.plist
-    /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP_PATH/Contents/Info.plist" 2>/dev/null || \
-    /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$APP_PATH/Contents/Info.plist"
-    
-    # Nettoyer
-    rm -rf app_icon.iconset
-    
-    echo "✓ Icône ajoutée"
-fi
+echo "✓ Icône ajoutée"
+
+# Vérifier que le plist généré est lisible par macOS
+plutil -lint "$APP_PATH/Contents/Info.plist"
 
 # Signer l'application (ad-hoc)
 echo "✍️  Signature de l'application..."
