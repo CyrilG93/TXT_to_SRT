@@ -16,7 +16,7 @@ Application macOS native pour convertir des fichiers de sous-titres `.txt` en `.
 
 1. Téléchargez la dernière archive `.zip` depuis la page GitHub Releases.
 2. Décompressez l'archive.
-3. Lancez `txttosrt_install_macos.sh` pour copier l'application dans `/Applications`.
+3. Glissez `SRT Converter.app` dans le dossier `Applications`.
 4. Au premier lancement, si macOS bloque l'app, faites clic droit sur `SRT Converter`, puis `Ouvrir`.
 
 Vous pouvez aussi utiliser l'application directement depuis le dossier extrait.
@@ -66,5 +66,5 @@ Version actuelle: `1.1.0`
 ### 1.1.0 - 2026-05-01
 
 - Nouvelle icône macOS intégrée correctement dans l'application.
-- Release macOS fournie avec l'application, le README et le script d'installation.
+- Release macOS fournie avec l'application finale et le README.
 - Lecture plus robuste des fichiers TXT exportés avec différents encodages.
